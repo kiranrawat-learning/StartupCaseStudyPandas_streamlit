@@ -45,6 +45,8 @@ startup['Date'] = pd.to_datetime(startup['Date'], errors='coerce')
 startup['month']=startup['Date'].dt.month
 startup.set_index('Sr No', inplace=True)
 investor_list = [i.strip() for i in sorted(set(startup['Investor_Name'].str.split(',').sum())) if i and i.strip()]
+startup['Amount_USD'] = startup['Amount_USD'].fillna(0)
+
 
 
 def load_overall_ana():
@@ -180,66 +182,84 @@ def Load_Investor_Details(investor):
         with col1:
             made_investment = startup[startup['Investor_Name'].str.contains(investor)].groupby('Startup_Name')[
                 'Amount_USD'].sum().sort_values(ascending=False).head()
+            if made_investment.empty or made_investment.sum() == 0:
+                st.warning('No investment data available')
+            else:
+                st.title('💼 Investments')
+                st.dataframe(made_investment)
 
-            st.title('💼Investments')
-            st.dataframe(made_investment)
-            fig, ax = plt.subplots()
-            ax.bar(made_investment.index, made_investment.values, color='Purple')
-            ax.set_ylim(0, made_investment.values.max() + 10000000)
+                st.title('💼Investments')
+                st.dataframe(made_investment)
+                fig, ax = plt.subplots()
+                ax.bar(made_investment.index, made_investment.values, color='Purple')
+                ax.set_ylim(0, made_investment.values.max() + 10000000)
 
-            def y_format(x, pos):
-                return f'${x:,.0f}'
+                def y_format(x, pos):
+                    return f'${x:,.0f}'
 
-            ax.yaxis.set_major_formatter(FuncFormatter(y_format))
-            st.pyplot(fig)
+                ax.yaxis.set_major_formatter(FuncFormatter(y_format))
+                st.pyplot(fig)
 
         # Sector-wise investments
-        with col2:
-            sector_investments = startup[startup['Investor_Name'].str.contains(investor)].groupby('Industry_Vertical')[
-                'Amount_USD'].sum().sort_values(ascending=False).head()
-            st.title('Sector Investments in')
-            st.write(sector_investments)
-            fig1, ax1 = plt.subplots(figsize=(15, 10))
 
-            ax1.pie(sector_investments.values, labels=sector_investments.index, autopct='%1.2f%%')
-            st.pyplot(fig1)
+            with col2:
+                sector_investments = startup[startup['Investor_Name'].str.contains(investor)].groupby('Industry_Vertical')[
+                    'Amount_USD'].sum().sort_values(ascending=False).head()
+                if sector_investments.empty or sector_investments.sum() == 0:
+                    st.warning('No investment data available')
+                else:
+                    st.title('Sector Investments in')
+                    st.write(sector_investments)
+                    fig1, ax1 = plt.subplots(figsize=(15, 10))
 
-        # Round-wise investments
-        with col3:
-            round_investments = startup[startup['Investor_Name'].str.contains(investor)].groupby('Investment_Type')[
-                'Amount_USD'].sum().sort_values(ascending=False).head()
-            st.title('🏦 Stage Invested in ')
-            fig2, ax2 = plt.subplots(figsize=(15, 10))
-            ax2.pie(round_investments.values, labels=round_investments.index, autopct='%1.2f%%')
-            st.pyplot(fig2)
+                    ax1.pie(sector_investments.values, labels=sector_investments.index, autopct='%1.2f%%')
+                    st.pyplot(fig1)
+
+            # Round-wise investments
+            with col3:
+                round_investments = startup[startup['Investor_Name'].str.contains(investor)].groupby('Investment_Type')[
+                    'Amount_USD'].sum().sort_values(ascending=False).head()
+                if round_investments.empty or round_investments.sum() == 0:
+                    st.warning('No investment data available')
+                else:
+                    st.title('🏦 Stage Invested in ')
+                    fig2, ax2 = plt.subplots(figsize=(15, 10))
+                    ax2.pie(round_investments.values, labels=round_investments.index, autopct='%1.2f%%')
+                    st.pyplot(fig2)
 
         col11, col22 = st.columns(2)
 
-        # City-wise investments
+            # City-wise investments
         with col11:
-            city = startup[startup['Investor_Name'].str.contains(investor)].groupby('City')[
-                'Amount_USD'].sum().sort_values(ascending=False).head()
-            st.title('🏙️ City Invested in ')
-            fig3, ax3 = plt.subplots(figsize=(5, 5))
-            ax3.bar(city.index, city.values, color='red')
-            ax3.set_ylim(0, city.values.max() + 10000000)
+                city = startup[startup['Investor_Name'].str.contains(investor)].groupby('City')[
+                    'Amount_USD'].sum().sort_values(ascending=False).head()
+                if city.empty or city.sum() == 0:
+                    st.warning('No investment data available')
+                else:
+                    st.title('🏙️ City Invested in ')
+                    fig3, ax3 = plt.subplots(figsize=(5, 5))
+                    ax3.bar(city.index, city.values, color='red')
+                    ax3.set_ylim(0, city.values.max() + 10000000)
 
-            def yy_format(x, pos):
-                return f'${x:,.0f}'
+                    def yy_format(x, pos):
+                        return f'${x:,.0f}'
 
-            ax3.yaxis.set_major_formatter(FuncFormatter(yy_format))
-            st.pyplot(fig3)
+                    ax3.yaxis.set_major_formatter(FuncFormatter(yy_format))
+                    st.pyplot(fig3)
 
-        # Year-wise investments
+            # Year-wise investments
         with col22:
-            year_wise = startup[startup['Investor_Name'].str.contains(investor)].groupby('year')[
-                'Amount_USD'].sum()
+                year_wise = startup[startup['Investor_Name'].str.contains(investor)].groupby('year')[
+                    'Amount_USD'].sum()
+                if year_wise.empty or year_wise.sum() == 0:
+                    st.warning('No investment data available')
+                else:
 
-            st.title('📈Year by Year Investment')
-            fig4, ax4 = plt.subplots(figsize=(15, 10))
-            ax4.plot(year_wise.index, year_wise.values, marker='o',linewidth=7,color='red')
-            ax4.yaxis.set_major_formatter(FuncFormatter(yy_format))
-            st.pyplot(fig4)
+                    st.title('📈Year by Year Investment')
+                    fig4, ax4 = plt.subplots(figsize=(15, 10))
+                    ax4.plot(year_wise.index, year_wise.values, marker='o',linewidth=7,color='red')
+                    ax4.yaxis.set_major_formatter(FuncFormatter(yy_format))
+                    st.pyplot(fig4)
 
 
 
